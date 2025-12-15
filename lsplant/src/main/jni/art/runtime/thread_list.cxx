@@ -8,10 +8,10 @@ namespace lsplant::art::thread_list {
 
 export class ScopedSuspendAll {
     inline static auto constructor_ =
-            "_ZN3art16ScopedSuspendAllC2EPKcb"_sym.as<void(ScopedSuspendAll::*)(const char *, bool)>;
+        "_ZN3art16ScopedSuspendAllC2EPKcb"_sym.as<void (ScopedSuspendAll::*)(const char *, bool)>;
 
     inline static auto destructor_ =
-            "_ZN3art16ScopedSuspendAllD2Ev"_sym.as<void(ScopedSuspendAll::*)()>;
+        "_ZN3art16ScopedSuspendAllD2Ev"_sym.as<void (ScopedSuspendAll::*)()>;
 
     inline static auto SuspendVM_ = "_ZN3art3Dbg9SuspendVMEv"_sym.as<void()>;
     inline static auto ResumeVM_ = "_ZN3art3Dbg8ResumeVMEv"_sym.as<void()>;

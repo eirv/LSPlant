@@ -507,7 +507,7 @@ template <ScopeOrClass Class>
 
 template <ScopeOrClass Class>
 [[maybe_unused]] inline auto JNI_ToReflectedField(JNIEnv *env, Class &&clazz, jfieldID field,
-                                                   jboolean isStatic = JNI_FALSE) {
+                                                  jboolean isStatic = JNI_FALSE) {
     return JNI_SafeInvoke(env, &JNIEnv::ToReflectedField, std::forward<Class>(clazz), field,
                           isStatic);
 }
@@ -1067,13 +1067,13 @@ public:
         return *this;
     }
 
-    template<JObject T>
+    template <JObject T>
     JObjectArrayElement &operator=(ScopedLocalRef<T> &&s) {
         reset(s.release());
         return *this;
     }
 
-    template<JObject T>
+    template <JObject T>
     JObjectArrayElement &operator=(const ScopedLocalRef<T> &s) {
         reset(s.clone());
         return *this;

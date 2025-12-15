@@ -12,7 +12,8 @@ import hook_helper;
 namespace lsplant::art::jit {
 export class JitCodeCache {
     inline static auto MoveObsoleteMethod_ =
-            "_ZN3art3jit12JitCodeCache18MoveObsoleteMethodEPNS_9ArtMethodES3_"_sym.as<void(JitCodeCache::*)(ArtMethod *, ArtMethod *)>;
+        "_ZN3art3jit12JitCodeCache18MoveObsoleteMethodEPNS_9ArtMethodES3_"_sym
+            .as<void (JitCodeCache::*)(ArtMethod *, ArtMethod *)>;
 
     static void MoveObsoleteMethods(JitCodeCache *thiz) {
         auto movements = GetJitMovements();
@@ -28,20 +29,18 @@ export class JitCodeCache {
     }
 
     inline static auto GarbageCollectCache_ =
-            "_ZN3art3jit12JitCodeCache19GarbageCollectCacheEPNS_6ThreadE"_sym.hook->*[]
-        <MemBackup auto backup>
-        (JitCodeCache *thiz, Thread *self) static -> void {
-            MoveObsoleteMethods(thiz);
-            backup(thiz, self);
-        };
+        "_ZN3art3jit12JitCodeCache19GarbageCollectCacheEPNS_6ThreadE"_sym.hook->*
+        []<MemBackup auto backup>(JitCodeCache *thiz, Thread *self) static -> void {
+        MoveObsoleteMethods(thiz);
+        backup(thiz, self);
+    };
 
     inline static auto DoCollection_ =
-            "_ZN3art3jit12JitCodeCache12DoCollectionEPNS_6ThreadE"_sym.hook->*[]
-        <MemBackup auto backup>
-        (JitCodeCache *thiz, Thread *self) static -> void {
-            MoveObsoleteMethods(thiz);
-            backup(thiz, self);
-        };
+        "_ZN3art3jit12JitCodeCache12DoCollectionEPNS_6ThreadE"_sym.hook->*
+        []<MemBackup auto backup>(JitCodeCache *thiz, Thread *self) static -> void {
+        MoveObsoleteMethods(thiz);
+        backup(thiz, self);
+    };
 
 public:
     static bool Init(const HookHandler &handler) {

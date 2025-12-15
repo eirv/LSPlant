@@ -114,8 +114,8 @@ using lsplant::JNI_CallStaticVoidMethod;
 using lsplant::JNI_CallVoidMethod;
 using lsplant::JNI_GetMethodID;
 using lsplant::JNI_GetStaticMethodID;
-using lsplant::JNI_ToReflectedMethod;
 using lsplant::JNI_ToReflectedField;
+using lsplant::JNI_ToReflectedMethod;
 
 using lsplant::JNI_NewBooleanArray;
 using lsplant::JNI_NewByteArray;

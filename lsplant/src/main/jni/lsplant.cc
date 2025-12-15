@@ -40,6 +40,7 @@ using art::ArtMethod;
 using art::ClassLinker;
 using art::DexFile;
 using art::Instrumentation;
+using art::JavaDebuggableGuard;
 using art::Runtime;
 using art::Thread;
 using art::gc::ScopedGCCriticalSection;
@@ -48,7 +49,6 @@ using art::jit::JitCodeCache;
 using art::jni::JniIdManager;
 using art::mirror::Class;
 using art::thread_list::ScopedSuspendAll;
-using art::JavaDebuggableGuard;
 
 using namespace std::string_view_literals;
 

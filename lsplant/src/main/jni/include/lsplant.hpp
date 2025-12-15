@@ -2,8 +2,8 @@
 
 #include <jni.h>
 
-#include <string_view>
 #include <functional>
+#include <string_view>
 
 /// \namespace lsplant
 namespace lsplant {
@@ -179,5 +179,5 @@ struct InitInfo {
 /// \return Indicate whether the operation has succeed.
 [[nodiscard, maybe_unused, gnu::visibility("default")]] bool MakeDexFileTrusted(JNIEnv *env,
                                                                                 jobject cookie);
-}  // namespace v1
+}  // namespace v2
 }  // namespace lsplant

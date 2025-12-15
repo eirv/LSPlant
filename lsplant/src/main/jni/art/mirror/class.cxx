@@ -17,10 +17,11 @@ export namespace lsplant::art::mirror {
 class Class {
 private:
     inline static auto GetDescriptor_ =
-        "_ZN3art6mirror5Class13GetDescriptorEPNSt3__112basic_stringIcNS2_11char_traitsIcEENS2_9allocatorIcEEEE"_sym.as<const char *(Class::*)(std::string *)>;
+        "_ZN3art6mirror5Class13GetDescriptorEPNSt3__112basic_stringIcNS2_11char_traitsIcEENS2_9allocatorIcEEEE"_sym
+            .as<const char *(Class::*)(std::string *)>;
 
     inline static auto GetClassDef_ =
-            "_ZN3art6mirror5Class11GetClassDefEv"_sym.as<const dex::ClassDef *(Class::*)()>;
+        "_ZN3art6mirror5Class11GetClassDefEv"_sym.as<const dex::ClassDef *(Class::*)()>;
 
     using BackupMethods = phmap::flat_hash_map<art::ArtMethod *, void *>;
     inline static phmap::flat_hash_map<const art::Thread *,
@@ -60,44 +61,42 @@ private:
     }
 
     inline static auto SetClassStatus_ =
-            "_ZN3art6mirror5Class9SetStatusENS_6HandleIS1_EENS_11ClassStatusEPNS_6ThreadE"_sym.hook->*[]
-        <Backup auto backup>
-        (TrivialHandle<Class> h, uint8_t new_status, Thread *self) static -> void {
-            if (new_status == initialized_status) {
-                BackupClassMethods(GetClassDef_(h.Get()), self);
-            }
-            return backup(h, new_status, self);
-        };
+        "_ZN3art6mirror5Class9SetStatusENS_6HandleIS1_EENS_11ClassStatusEPNS_6ThreadE"_sym.hook->*
+        []<Backup auto backup>(TrivialHandle<Class> h, uint8_t new_status,
+                               Thread *self) static -> void {
+        if (new_status == initialized_status) {
+            BackupClassMethods(GetClassDef_(h.Get()), self);
+        }
+        return backup(h, new_status, self);
+    };
 
     inline static auto SetStatus_ =
-        "_ZN3art6mirror5Class9SetStatusENS_6HandleIS1_EENS1_6StatusEPNS_6ThreadE"_sym.hook->*[]
-        <Backup auto backup>
-         (Handle<Class> h, int new_status, Thread *self) static -> void {
-            if (new_status == static_cast<int>(initialized_status)) {
-                BackupClassMethods(GetClassDef_(h.Get()), self);
-            }
-            return backup(h, new_status, self);
-        };
+        "_ZN3art6mirror5Class9SetStatusENS_6HandleIS1_EENS1_6StatusEPNS_6ThreadE"_sym.hook->*
+        []<Backup auto backup>(Handle<Class> h, int new_status, Thread *self) static -> void {
+        if (new_status == static_cast<int>(initialized_status)) {
+            BackupClassMethods(GetClassDef_(h.Get()), self);
+        }
+        return backup(h, new_status, self);
+    };
 
     inline static auto TrivialSetStatus_ =
-        "_ZN3art6mirror5Class9SetStatusENS_6HandleIS1_EENS1_6StatusEPNS_6ThreadE"_sym.hook->*[]
-        <Backup auto backup>
-        (TrivialHandle<Class> h, uint32_t new_status, Thread *self) static -> void {
-            if (new_status == initialized_status) {
-                BackupClassMethods(GetClassDef_(h.Get()), self);
-            }
-            return backup(h, new_status, self);
-        };
+        "_ZN3art6mirror5Class9SetStatusENS_6HandleIS1_EENS1_6StatusEPNS_6ThreadE"_sym.hook->*
+        []<Backup auto backup>(TrivialHandle<Class> h, uint32_t new_status,
+                               Thread *self) static -> void {
+        if (new_status == initialized_status) {
+            BackupClassMethods(GetClassDef_(h.Get()), self);
+        }
+        return backup(h, new_status, self);
+    };
 
     inline static auto ClassSetStatus_ =
-        "_ZN3art6mirror5Class9SetStatusENS1_6StatusEPNS_6ThreadE"_sym.hook->*[]
-        <MemBackup auto backup>
-        (Class *thiz, int new_status, Thread *self) static -> void {
-            if (new_status == static_cast<int>(initialized_status)) {
-                BackupClassMethods(GetClassDef_(thiz), self);
-            }
-            return backup(thiz, new_status, self);
-        };
+        "_ZN3art6mirror5Class9SetStatusENS1_6StatusEPNS_6ThreadE"_sym.hook->*
+        []<MemBackup auto backup>(Class *thiz, int new_status, Thread *self) static -> void {
+        if (new_status == static_cast<int>(initialized_status)) {
+            BackupClassMethods(GetClassDef_(thiz), self);
+        }
+        return backup(thiz, new_status, self);
+    };
 
 public:
     static bool Init(const HookHandler &handler) {

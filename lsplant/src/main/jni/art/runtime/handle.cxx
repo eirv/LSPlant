@@ -44,7 +44,7 @@ export {
     class alignas(4) [[gnu::packed]] StackReference : public CompressedReference<MirrorType> {};
 
     template <typename To, typename From>  // use like this: down_cast<T*>(foo);
-    inline To down_cast(From * f) {        // so we only accept pointers
+    inline To down_cast(From *f) {         // so we only accept pointers
         static_assert(std::is_base_of_v<From, std::remove_pointer_t<To>>,
                       "down_cast unsafe as To is not a subtype of From");
 

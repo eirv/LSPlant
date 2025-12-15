@@ -5,7 +5,7 @@ UseCRLF: false
 UseTab: false
 ---
 Language: Cpp
-DerivePointerAlignment: true
+DerivePointerAlignment: false
 PointerAlignment: Right
 ColumnLimit: 100
 AlignEscapedNewlines: Right

@@ -1,8 +1,8 @@
 module;
 
 #include <atomic>
-#include <string>
 #include <memory>
+#include <string>
 
 #include "logging.hpp"
 
@@ -14,25 +14,27 @@ import hook_helper;
 export namespace lsplant::art {
 class ArtMethod {
     inline static auto PrettyMethod_ =
-            "_ZN3art9ArtMethod12PrettyMethodEPS0_b"_sym.as<std::string(ArtMethod::*)(bool)>;
+        "_ZN3art9ArtMethod12PrettyMethodEPS0_b"_sym.as<std::string (ArtMethod::*)(bool)>;
 
     inline static auto PrettyMethodStatic_ =
-            "_ZN3art12PrettyMethodEPNS_9ArtMethodEb"_sym.as<std::string(ArtMethod *thiz, bool with_signature)>;
+        "_ZN3art12PrettyMethodEPNS_9ArtMethodEb"_sym
+            .as<std::string(ArtMethod *thiz, bool with_signature)>;
 
     inline static auto PrettyMethodMirror_ =
-            "_ZN3art12PrettyMethodEPNS_6mirror9ArtMethodEb"_sym.as<std::string(ArtMethod *thiz, bool with_signature)>;
+        "_ZN3art12PrettyMethodEPNS_6mirror9ArtMethodEb"_sym
+            .as<std::string(ArtMethod *thiz, bool with_signature)>;
 
-    inline static auto GetMethodShortyL_ =
-            "_ZN3artL15GetMethodShortyEP7_JNIEnvP10_jmethodID"_sym.as<const char *(JNIEnv *env, jmethodID method)>;
+    inline static auto GetMethodShortyL_ = "_ZN3artL15GetMethodShortyEP7_JNIEnvP10_jmethodID"_sym
+                                               .as<const char *(JNIEnv *env, jmethodID method)>;
 
-    inline static auto GetMethodShorty_ =
-            "_ZN3art15GetMethodShortyEP7_JNIEnvP10_jmethodID"_sym.as<const char *(JNIEnv *env, jmethodID mid)>;
+    inline static auto GetMethodShorty_ = "_ZN3art15GetMethodShortyEP7_JNIEnvP10_jmethodID"_sym
+                                              .as<const char *(JNIEnv *env, jmethodID mid)>;
 
     inline static auto ThrowInvocationTimeError_ =
-            "_ZN3art9ArtMethod24ThrowInvocationTimeErrorEv"_sym.as<void(ArtMethod::*)()>;
+        "_ZN3art9ArtMethod24ThrowInvocationTimeErrorEv"_sym.as<void (ArtMethod::*)()>;
 
     inline static auto art_interpreter_to_compiled_code_bridge_ =
-            "artInterpreterToCompiledCodeBridge"_sym.as<void()>;
+        "artInterpreterToCompiledCodeBridge"_sym.as<void()>;
 
     inline void ThrowInvocationTimeError() {
         if (ThrowInvocationTimeError_) {
@@ -161,7 +163,7 @@ public:
     }
 
     std::unique_ptr<ArtMethod> Clone() {
-        auto *method = reinterpret_cast<ArtMethod*>(::operator new(art_method_size));
+        auto *method = reinterpret_cast<ArtMethod *>(::operator new(art_method_size));
         method->CopyFrom(this);
         return std::unique_ptr<ArtMethod>(method);
     }

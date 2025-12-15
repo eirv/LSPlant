@@ -20,26 +20,28 @@ export class DexFile {
 
     inline static auto OpenMemory_ =
         ("_ZN3art7DexFile10OpenMemoryEPKhjRKNSt3__112basic_stringIcNS3_11char_traitsIcEENS3_9allocatorIcEEEEjPNS_6MemMapEPKNS_10OatDexFileEPS9_"_sym |
-         "_ZN3art7DexFile10OpenMemoryEPKhmRKNSt3__112basic_stringIcNS3_11char_traitsIcEENS3_9allocatorIcEEEEjPNS_6MemMapEPKNS_10OatDexFileEPS9_"_sym).as<
-        std::unique_ptr<DexFile>(const uint8_t* dex_file, size_t size, const std::string& location,
-                                 uint32_t location_checksum, void* mem_map,
-                                 const void* oat_dex_file, std::string* error_msg)>;
+         "_ZN3art7DexFile10OpenMemoryEPKhmRKNSt3__112basic_stringIcNS3_11char_traitsIcEENS3_9allocatorIcEEEEjPNS_6MemMapEPKNS_10OatDexFileEPS9_"_sym)
+            .as<std::unique_ptr<DexFile>(const uint8_t* dex_file, size_t size,
+                                         const std::string& location, uint32_t location_checksum,
+                                         void* mem_map, const void* oat_dex_file,
+                                         std::string* error_msg)>;
 
     inline static auto OpenMemoryRaw_ =
         ("_ZN3art7DexFile10OpenMemoryEPKhjRKNSt3__112basic_stringIcNS3_11char_traitsIcEENS3_9allocatorIcEEEEjPNS_6MemMapEPKNS_7OatFileEPS9_"_sym |
-         "_ZN3art7DexFile10OpenMemoryEPKhmRKNSt3__112basic_stringIcNS3_11char_traitsIcEENS3_9allocatorIcEEEEjPNS_6MemMapEPKNS_7OatFileEPS9_"_sym).as<
-        const DexFile*(const uint8_t* dex_file, size_t size, const std::string& location,
-                       uint32_t location_checksum, void* mem_map, const void* oat_dex_file,
-                       std::string* error_msg)>;
+         "_ZN3art7DexFile10OpenMemoryEPKhmRKNSt3__112basic_stringIcNS3_11char_traitsIcEENS3_9allocatorIcEEEEjPNS_6MemMapEPKNS_7OatFileEPS9_"_sym)
+            .as<const DexFile*(const uint8_t* dex_file, size_t size, const std::string& location,
+                               uint32_t location_checksum, void* mem_map, const void* oat_dex_file,
+                               std::string* error_msg)>;
 
     inline static auto OpenMemoryWithoutOdex_ =
-            ("_ZN3art7DexFile10OpenMemoryEPKhjRKNSt3__112basic_stringIcNS3_11char_traitsIcEENS3_9allocatorIcEEEEjPNS_6MemMapEPS9_"_sym |
-         "_ZN3art7DexFile10OpenMemoryEPKhmRKNSt3__112basic_stringIcNS3_11char_traitsIcEENS3_9allocatorIcEEEEjPNS_6MemMapEPS9_"_sym).as<
-        const DexFile*(const uint8_t* dex_file, size_t size, const std::string& location,
-                       uint32_t location_checksum, void* mem_map, std::string* error_msg)>;
+        ("_ZN3art7DexFile10OpenMemoryEPKhjRKNSt3__112basic_stringIcNS3_11char_traitsIcEENS3_9allocatorIcEEEEjPNS_6MemMapEPS9_"_sym |
+         "_ZN3art7DexFile10OpenMemoryEPKhmRKNSt3__112basic_stringIcNS3_11char_traitsIcEENS3_9allocatorIcEEEEjPNS_6MemMapEPS9_"_sym)
+            .as<const DexFile*(const uint8_t* dex_file, size_t size, const std::string& location,
+                               uint32_t location_checksum, void* mem_map, std::string* error_msg)>;
 
     inline static auto DexFile_setTrusted_ =
-            "_ZN3artL18DexFile_setTrustedEP7_JNIEnvP7_jclassP8_jobject"_sym.as<void(JNIEnv* env, jclass clazz, jobject j_cookie)>;
+        "_ZN3artL18DexFile_setTrustedEP7_JNIEnvP7_jclassP8_jobject"_sym
+            .as<void(JNIEnv* env, jclass clazz, jobject j_cookie)>;
 
 public:
     static const DexFile* OpenMemory(const uint8_t* dex_file, size_t size, std::string location,

@@ -33,10 +33,11 @@ private:
     inline static auto instance_ = "_ZN3art7Runtime9instance_E"_sym.as<Runtime *>;
 
     inline static auto SetJavaDebuggable_ =
-            "_ZN3art7Runtime17SetJavaDebuggableEb"_sym.as<void (Runtime::*)(bool)>;
+        "_ZN3art7Runtime17SetJavaDebuggableEb"_sym.as<void (Runtime::*)(bool)>;
 
     inline static auto SetRuntimeDebugState_ =
-            "_ZN3art7Runtime20SetRuntimeDebugStateENS0_17RuntimeDebugStateE"_sym.as<void (Runtime::*)(RuntimeDebugState)>;
+        "_ZN3art7Runtime20SetRuntimeDebugStateENS0_17RuntimeDebugStateE"_sym
+            .as<void (Runtime::*)(RuntimeDebugState)>;
 
     inline static size_t debug_state_offset = 0U;
 
@@ -96,7 +97,7 @@ export struct JavaDebuggableGuard {
             if (count.compare_exchange_strong(expected, 1, std::memory_order_acq_rel,
                                               std::memory_order_acquire)) {
                 Runtime::Current()->SetJavaDebuggable(
-                        Runtime::RuntimeDebugState::kJavaDebuggableAtInit);
+                    Runtime::RuntimeDebugState::kJavaDebuggableAtInit);
                 count.fetch_add(1, std::memory_order_release);
                 count.notify_all();
                 break;
@@ -118,7 +119,7 @@ export struct JavaDebuggableGuard {
             if (count.compare_exchange_strong(expected, 1, std::memory_order_acq_rel,
                                               std::memory_order_acquire)) {
                 Runtime::Current()->SetJavaDebuggable(
-                        Runtime::RuntimeDebugState::kNonJavaDebuggable);
+                    Runtime::RuntimeDebugState::kNonJavaDebuggable);
                 count.fetch_sub(1, std::memory_order_release);
                 count.notify_all();
                 break;
