@@ -5,3 +5,15 @@
 [submodule "docs/doxygen-awesome-css"]
 	path = docs/doxygen-awesome-css
 	url = https://github.com/jothepro/doxygen-awesome-css.git
+[submodule "test/src/main/jni/external/xDL"]
+	path = test/src/main/jni/external/xDL
+	url = https://github.com/hexhacking/xDL
+[submodule "test/src/main/jni/external/xz-embedded"]
+	path = test/src/main/jni/external/xz-embedded
+	url = https://github.com/tukaani-project/xz-embedded
+[submodule "test/src/main/jni/external/Dobby"]
+	path = test/src/main/jni/external/Dobby
+	url = https://github.com/JingMatrix/Dobby
+[submodule "test/src/main/jni/external/riscv64-inline-hook"]
+	path = test/src/main/jni/external/riscv64-inline-hook
+	url = https://github.com/eirv/riscv64-inline-hook
