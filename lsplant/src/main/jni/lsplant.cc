@@ -19,6 +19,7 @@ module;
 #include <expected>
 #include <mutex>
 #include <optional>
+#include <span>
 #include <string>
 #include <string_view>
 #include <tuple>
@@ -70,6 +71,7 @@ using art::mirror::Class;
 using art::mirror::Unsafe;
 using art::thread_list::ScopedSuspendAll;
 
+using namespace std::string_literals;
 using namespace std::string_view_literals;
 
 namespace {
@@ -910,10 +912,11 @@ bool IsProxyMethod(JNIEnv *env, ArtMethod *art_method, jobject reflected_method)
     return false;
 }
 
-template <typename Callback, bool kNativeApi = std::is_same_v<Callback, NativeCallbackType>,
-          typename Result = std::conditional_t<kNativeApi, HookResult, jobject>>
+template <typename Callback, bool kNativeApi = std::is_same_v<Callback, NativeCallbackType>>
     requires(kNativeApi || std::is_same_v<Callback, jobject>)
-Result HookMethod(JNIEnv *env, jobject target_method, jobject hooker_object, Callback callback) {
+std::conditional_t<kNativeApi, HookResult, jobject> HookMethod(JNIEnv *env, jobject target_method,
+                                                               jobject hooker_object,
+                                                               Callback callback) {
     if (!target_method || !JNI_IsInstanceOf(env, target_method, executable_ref.get(env)))
         [[unlikely]] {
         LOGE("target method is not an executable");
@@ -1321,21 +1324,19 @@ bool MakeDexFileTrusted(JNIEnv *env, jobject cookie) {
 }
 
 [[maybe_unused, gnu::visibility("default")]]
-std::expected<jobject, std::string> OpenInMemoryDexFile(JNIEnv *env, const void *dex, size_t size,
+std::expected<jobject, std::string> OpenInMemoryDexFile(JNIEnv *env, std::span<const uint8_t> dex,
                                                         bool trusted) {
-    if (!dex || size == 0) [[unlikely]] {
-        LOGE("dex is empty");
-        return nullptr;
+    if (dex.size() == 0) [[unlikely]] {
+        return std::unexpected{"dex is empty"};
     }
     if (!DexFile::IsMemoryDexSupported()) [[unlikely]] {
-        LOGE("memory dex is not supported");
-        return nullptr;
+        return std::unexpected{"memory dex is not supported"};
     }
 
-    std::string err_msg;
+    auto err_msg = "unknown"s;
     const auto *dex_file = DexFile::OpenMemory(
-        reinterpret_cast<const uint8_t *>(dex), size,
-        generated_source_name.empty() ? "android" : generated_source_name, &err_msg);
+        dex.data(), dex.size(), generated_source_name.empty() ? "android" : generated_source_name,
+        &err_msg);
 
     if (dex_file) [[likely]] {
         return dex_file->ToJavaDexFile(env, trusted);

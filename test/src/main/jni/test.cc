@@ -103,21 +103,21 @@ JNIEXPORT jobject Java_org_lsposed_lsplant_Hooker_findMethod(JNIEnv *env, jclass
                                                              jstring signature_jstr,
                                                              jboolean is_static) {
     if (!clazz || !name_jstr || !signature_jstr) return nullptr;
-    
+
     JUTFString const name{env, name_jstr};
     JUTFString const signature{env, signature_jstr};
-    
+
     auto method_id = is_static ? env->GetStaticMethodID(clazz, name, signature)
                                : env->GetMethodID(clazz, name, signature);
     if (!method_id) return nullptr;
-    
+
     auto art_method = art::ArtMethod::FromJMethodID(env, clazz, method_id, is_static);
-    
+
     auto is_constructor = art_method->IsConstructor();
     if (is_constructor) art_method->SetNonConstructor();
     auto reflected_method = env->ToReflectedMethod(clazz, method_id, is_static);
     if (is_constructor) art_method->SetConstructor();
-    
+
     return reflected_method;
 }
 

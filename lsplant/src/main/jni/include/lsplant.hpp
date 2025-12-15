@@ -4,6 +4,7 @@
 
 #include <expected>
 #include <functional>
+#include <span>
 #include <string>
 #include <string_view>
 #include <tuple>
@@ -12,8 +13,8 @@
 namespace lsplant {
 
 inline namespace v3 {
-using NativeCallbackType = jobject (*)(JNIEnv *env, jclass hooker_class, jobject this_object,
-                                       jobjectArray args_array, jobject data);
+using NativeCallbackType = jobject (*)(JNIEnv *env, jclass hooker_class, jobject receiver,
+                                       jobjectArray args, jobject data);
 
 /// \struct InitInfo
 /// \brief Information and configuration that are needed to call #Init()
@@ -201,7 +202,7 @@ struct HookResult {
 [[maybe_unused]] bool MakeDexFileTrusted(JNIEnv *env, jobject cookie);
 
 [[nodiscard, maybe_unused]] std::expected<jobject, std::string> OpenInMemoryDexFile(
-    JNIEnv *env, const void *dex, size_t size, bool trusted = false);
+    JNIEnv *env, std::span<const uint8_t> dex, bool trusted = false);
 
 /// \brief Make a method hidden in the stack trace.
 /// \param[in] env The Java environment.
