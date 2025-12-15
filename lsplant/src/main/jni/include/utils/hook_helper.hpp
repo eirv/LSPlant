@@ -1,30 +1,48 @@
 #pragma once
 
-#include <android/log.h>
-
 #include <concepts>
+#include <string_view>
 
 #include "lsplant.hpp"
 #include "type_traits.hpp"
 
 namespace lsplant {
 
-template <size_t N>
+template <size_t N, typename T, T... kChars>
 struct FixedString {
-    consteval FixedString(const char (&str)[N]) { std::copy_n(str, N, data); }
-    char data[N] = {};
+    static consteval auto GetString() {
+        static constexpr T data[sizeof...(kChars)]{kChars...};
+        return std::string_view{data, N};
+    }
+
+    static consteval auto GetGnuHash() {
+        uint32_t hash = 5381;
+        for (auto ch : GetString()) {
+            hash += (hash << 5) + static_cast<uint8_t>(ch);
+        }
+        return hash;
+    }
+
+    static consteval auto IsEmpty() { return N == 0; }
 };
 
 template <typename T>
 concept FuncType = std::is_function_v<T> || std::is_member_function_pointer_v<T>;
+
+template <typename T>
+concept FuncPtrType = std::is_function_v<std::remove_pointer_t<std::remove_reference_t<T>>> ||
+                      std::is_member_function_pointer_v<std::remove_reference_t<T>> ||
+                      std::is_same_v<std::remove_reference_t<T>, void *>;
 
 template <FixedString, FuncType>
 struct Function;
 
 template <FixedString Sym, typename Ret, typename... Args>
 struct Function<Sym, Ret(Args...)> {
-    [[gnu::always_inline]] static Ret operator()(Args... args) { return inner_.function_(args...); }
-    [[gnu::always_inline]] operator bool() { return inner_.raw_function_; }
+    [[gnu::always_inline]] static Ret operator()(Args... args) {
+        return inner_.function_(std::forward<Args>(args)...);
+    }
+    [[gnu::always_inline]] operator bool() { return inner_.raw_function_ != nullptr; }
     [[gnu::always_inline]] auto operator&() const { return inner_.function_; }
     [[gnu::always_inline]] Function &operator=(void *function) {
         inner_.raw_function_ = function;
@@ -38,14 +56,16 @@ private:
     } inner_;
 
     static_assert(sizeof(inner_.function_) == sizeof(inner_.raw_function_));
+
+    friend struct HookHandler;
 };
 
 template <FixedString Sym, class This, typename Ret, typename... Args>
 struct Function<Sym, Ret (This::*)(Args...)> {
     [[gnu::always_inline]] static Ret operator()(This *thiz, Args... args) {
-        return (reinterpret_cast<ThisType *>(thiz)->*inner_.function_)(args...);
+        return (reinterpret_cast<ThisType *>(thiz)->*inner_.function_)(std::forward<Args>(args)...);
     }
-    [[gnu::always_inline]] operator bool() { return inner_.raw_function_; }
+    [[gnu::always_inline]] operator bool() { return inner_.raw_function_ != nullptr; }
     [[gnu::always_inline]] auto operator&() const { return inner_.function_; }
     [[gnu::always_inline]] Function &operator=(void *function) {
         inner_.raw_function_ = function;
@@ -64,6 +84,8 @@ private:
     } inner_;
 
     static_assert(sizeof(inner_.function_) == sizeof(inner_.raw_function_) + sizeof(inner_.adj));
+
+    friend struct HookHandler;
 };
 
 template <FixedString, typename T>
@@ -90,34 +112,40 @@ struct Hooker;
 
 template <FixedString Sym, typename Ret, typename... Args>
 struct Hooker<Sym, Ret(Args...)> : Function<Sym, Ret(Args...)> {
+    [[gnu::always_inline]] operator bool() { return handle_ != nullptr; }
     [[gnu::always_inline]] Hooker &operator=(void *function) {
         Function<Sym, Ret(Args...)>::operator=(function);
         return *this;
     }
 
-private:
+public:
     [[gnu::always_inline]] constexpr Hooker(Ret (*replace)(Args...)) { replace_ = replace; };
+    inline static Ret (*replace_)(Args...) = nullptr;
+    inline static void *handle_ = nullptr;
+
     friend struct HookHandler;
     template <FixedString S>
     friend struct Symbol;
-    inline static Ret (*replace_)(Args...) = nullptr;
 };
 
 template <FixedString Sym, class This, typename Ret, typename... Args>
 struct Hooker<Sym, Ret (This::*)(Args...)> : Function<Sym, Ret (This::*)(Args...)> {
+    [[gnu::always_inline]] operator bool() { return handle_ != nullptr; }
     [[gnu::always_inline]] Hooker &operator=(void *function) {
         Function<Sym, Ret (This::*)(Args...)>::operator=(function);
         return *this;
     }
 
-private:
+public:
     [[gnu::always_inline]] constexpr Hooker(Ret (*replace)(This *, Args...)) {
         replace_ = replace;
     };
+    inline static Ret (*replace_)(This *, Args...) = nullptr;
+    inline static void *handle_ = nullptr;
+
     friend struct HookHandler;
     template <FixedString S>
     friend struct Symbol;
-    inline static Ret (*replace_)(This *, Args...) = nullptr;
 };
 
 struct HookHandler {
@@ -130,7 +158,7 @@ struct HookHandler {
 
     template <typename T1, typename T2, typename... U>
     [[gnu::always_inline]] bool operator()(T1 &&arg1, T2 &&arg2, U &&...args) const {
-        if constexpr (std::is_same_v<T2, bool>)
+        if constexpr (std::is_same_v<T2, bool> || FuncPtrType<T1>)
             return handle(std::forward<T1>(arg1), std::forward<T2>(arg2)) ||
                    this->operator()(std::forward<U>(args)...);
         else
@@ -138,39 +166,114 @@ struct HookHandler {
                    this->operator()(std::forward<T2>(arg2), std::forward<U>(args)...);
     }
 
+    template <typename T, typename... U>
+    [[gnu::always_inline]] bool all(T &&arg) const {
+        return handle(std::forward<T>(arg), false);
+    }
+
+    template <typename T1, typename T2, typename... U>
+    [[gnu::always_inline]] bool all(T1 &&arg1, T2 &&arg2, U &&...args) const {
+        if constexpr (FuncPtrType<T1>) {
+            if constexpr (sizeof...(args) == 0) {
+                return handle(std::forward<T1>(arg1), std::forward<T2>(arg2));
+            } else {
+                return handle(std::forward<T1>(arg1), std::forward<T2>(arg2)) &&
+                       all(std::forward<U>(args)...);
+            }
+        } else if constexpr (sizeof...(args) == 0) {
+            return handle(std::forward<T1>(arg1), false) && handle(std::forward<T2>(arg2), false);
+        } else {
+            return handle(std::forward<T1>(arg1), false) &&
+                   all(std::forward<T2>(arg2), std::forward<U>(args)...);
+        }
+    }
+
+    template <typename T, typename... U>
+    [[gnu::always_inline]] bool dexfile(T &&arg, U &&...args) const {
+        if constexpr (sizeof...(args) == 0) {
+            return handle_dexfile(std::forward<T>(arg));
+        } else {
+            return handle_dexfile(std::forward<T>(arg)) || dexfile(std::forward<U>(args)...);
+        }
+    }
+
+    template <FixedString Sym, typename... Us, template <FixedString, typename...> typename T>
+        requires(requires { T<Sym, Us...>::replace_; } && !Sym.IsEmpty())
+    [[gnu::always_inline]] bool unhook(T<Sym, Us...> &hooker) const {
+        if (hooker.handle_ && info_.inline_unhooker && info_.inline_unhooker(hooker.handle_)) {
+            hooker.handle_ = nullptr;
+            return true;
+        }
+        return false;
+    }
+
 private:
     [[gnu::always_inline]] bool operator()() const { return false; }
 
-    const InitInfo &info_;
     template <FixedString Sym, typename... Us, template <FixedString, typename...> typename T>
-        requires(!requires { T<Sym, Us...>::replace_; })
+        requires(!requires { T<Sym, Us...>::replace_; } && !Sym.IsEmpty())
     [[gnu::always_inline]] bool handle(T<Sym, Us...> &target, bool match_prefix) const {
         return target = dlsym<Sym>(match_prefix);
     }
 
     template <FixedString Sym, typename... Us, template <FixedString, typename...> typename T>
-        requires(requires { T<Sym, Us...>::replace_; })
+        requires(requires { T<Sym, Us...>::replace_; } && !Sym.IsEmpty())
     [[gnu::always_inline]] bool handle(T<Sym, Us...> &hooker, bool match_prefix) const {
-        return hooker = hook(dlsym<Sym>(match_prefix), reinterpret_cast<void *>(hooker.replace_));
+        auto handle = hook(dlsym<Sym>(match_prefix), reinterpret_cast<void *>(hooker.replace_),
+                           &hooker.inner_.raw_function_);
+        if (handle) [[likely]] {
+            hooker.handle_ = handle;
+            return true;
+        }
+        return false;
+    }
+
+    template <FixedString Sym, typename... Us, template <FixedString, typename...> typename T,
+              FuncPtrType F>
+        requires(requires { T<Sym, Us...>::replace_; })
+    [[gnu::always_inline]] bool handle(F &&function, T<Sym, Us...> &hooker) const {
+        auto handle = hook(reinterpret_cast<void *>(function),
+                           reinterpret_cast<void *>(hooker.replace_), &hooker.inner_.raw_function_);
+        if (handle) [[likely]] {
+            hooker.handle_ = handle;
+            return true;
+        }
+        return false;
+    }
+
+    template <FixedString Sym, typename... Us, template <FixedString, typename...> typename T>
+        requires(!requires { T<Sym, Us...>::replace_; } && !Sym.IsEmpty())
+    [[gnu::always_inline]] bool handle_dexfile(T<Sym, Us...> &target) const {
+        return target = dlsym_dexfile<Sym>();
     }
 
     template <FixedString Sym>
     [[gnu::always_inline]] void *dlsym(bool match_prefix = false) const {
-        if (auto match = info_.art_symbol_resolver(Sym.data); match) {
+        if (auto match = info_.art_symbol_resolver(Sym.GetString(), Sym.GetGnuHash()); match) {
             return match;
         }
         if (match_prefix && info_.art_symbol_prefix_resolver) [[likely]] {
-            return info_.art_symbol_prefix_resolver(Sym.data);
+            return info_.art_symbol_prefix_resolver(Sym.GetString());
         }
         return nullptr;
     }
 
-    [[gnu::always_inline]] void *hook(void *original, void *replace) const {
-        if (original) [[likely]] {
-            return info_.inline_hooker(original, replace);
+    template <FixedString Sym>
+    [[gnu::always_inline]] void *dlsym_dexfile() const {
+        if (info_.dexfile_symbol_resolver) {
+            return info_.dexfile_symbol_resolver(Sym.GetString(), Sym.GetGnuHash());
         }
         return nullptr;
     }
+
+    [[gnu::always_inline]] void *hook(void *original, void *replace, void **backup) const {
+        if (original) [[likely]] {
+            return info_.inline_hooker(original, replace, backup);
+        }
+        return nullptr;
+    }
+
+    const InitInfo &info_;
 };
 
 template <typename F>
@@ -215,17 +318,17 @@ struct Symbol {
     } hook;
 };
 
-template <FixedString S>
-constexpr Symbol<S> operator""_sym() {
-    return {};
+template <typename T, T... kChars>
+constexpr auto operator""_sym() {
+    return Symbol<FixedString<sizeof...(kChars), T, kChars..., T{}>{}>{};
 }
 
 template <FixedString S, FixedString P>
-consteval auto operator|([[maybe_unused]] Symbol<S> a, [[maybe_unused]] Symbol<P> b) {
-#if defined(__LP64__)
-    return b;
-#else
-    return a;
-#endif
+consteval auto operator|([[maybe_unused]] Symbol<S> lp32, [[maybe_unused]] Symbol<P> lp64) {
+    if constexpr (is_arch_v<Arch::kLP32>) {
+        return lp32;
+    } else {
+        return lp64;
+    }
 }
 }  // namespace lsplant

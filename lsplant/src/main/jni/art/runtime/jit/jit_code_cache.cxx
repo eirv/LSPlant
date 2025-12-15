@@ -2,12 +2,13 @@ module;
 
 #include "logging.hpp"
 
+#ifdef LSPLANT_USE_MODULES
 export module lsplant:jit_code_cache;
 
-import :art_method;
 import :common;
+import :art_method;
 import :thread;
-import hook_helper;
+#endif
 
 namespace lsplant::art::jit {
 export class JitCodeCache {
@@ -47,11 +48,13 @@ public:
         auto sdk_int = GetAndroidApiLevel();
         if (sdk_int >= __ANDROID_API_O__) [[likely]] {
             if (!handler(MoveObsoleteMethod_)) [[unlikely]] {
+                LOGE("Failed to find MoveObsoleteMethod");
                 return false;
             }
         }
         if (sdk_int >= __ANDROID_API_N__) [[likely]] {
             if (!handler(GarbageCollectCache_, DoCollection_)) [[unlikely]] {
+                LOGE("Failed to hook GarbageCollectCache or DoCollection");
                 return false;
             }
         }

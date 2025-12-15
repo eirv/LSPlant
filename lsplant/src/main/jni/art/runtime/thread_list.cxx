@@ -1,8 +1,10 @@
 module;
 
+#ifdef LSPLANT_USE_MODULES
 export module lsplant:thread_list;
 
-import hook_helper;
+import :common;
+#endif
 
 namespace lsplant::art::thread_list {
 
@@ -18,7 +20,7 @@ export class ScopedSuspendAll {
 
 public:
     ScopedSuspendAll(const char *cause, bool long_suspend) {
-        if (constructor_) {
+        if (constructor_) [[likely]] {
             constructor_(this, cause, long_suspend);
         } else if (SuspendVM_) {
             SuspendVM_();
@@ -26,7 +28,7 @@ public:
     }
 
     ~ScopedSuspendAll() {
-        if (destructor_) {
+        if (destructor_) [[likely]] {
             destructor_(this);
         } else if (ResumeVM_) {
             ResumeVM_();
@@ -34,13 +36,7 @@ public:
     }
 
     static bool Init(const HookHandler &handler) {
-        if (!handler(constructor_, SuspendVM_)) [[unlikely]] {
-            return false;
-        }
-        if (!handler(destructor_, ResumeVM_)) [[unlikely]] {
-            return false;
-        }
-        return true;
+        return handler.all(constructor_, destructor_) || handler.all(SuspendVM_, ResumeVM_);
     }
 };
 

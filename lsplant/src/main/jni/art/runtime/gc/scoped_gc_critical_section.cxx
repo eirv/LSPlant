@@ -2,11 +2,14 @@ module;
 
 #include <android/api-level.h>
 
-export module lsplant:scope_gc_critical_section;
+#include "logging.hpp"
 
-import :thread;
+#ifdef LSPLANT_USE_MODULES
+export module lsplant:scoped_gc_critical_section;
+
 import :common;
-import hook_helper;
+import :thread;
+#endif
 
 namespace lsplant::art::gc {
 // Which types of collections are able to be performed.
@@ -119,7 +122,8 @@ public:
         // for Android M, it's safe to not found since we have suspendVM & resumeVM
         auto sdk_int = GetAndroidApiLevel();
         if (sdk_int >= __ANDROID_API_N__) [[likely]] {
-            if (!handler(constructor_) || !handler(destructor_)) {
+            if (!handler.all(constructor_, destructor_)) [[unlikely]] {
+                LOGE("Failed to find ScopedGCCriticalSection");
                 return false;
             }
         }

@@ -2,7 +2,7 @@ name: Build
 
 on:
   push:
-    branches: ["master"]
+    branches: ["main"]
     paths-ignore:
       - 'README.md'
   workflow_dispatch:
@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-latest, windows-latest, macos-14 ]
+        os: [ ubuntu-latest ]
 
     steps:
       - name: Check out
@@ -195,6 +195,7 @@ jobs:
             ccache -o cache_dir=${{ github.workspace }}/.ccache
             ccache -o hash_dir=false
             ccache -o compiler_check='%compiler% -dumpmachine; %compiler% -dumpversion'
+            sed -i "/val androidAbiFilters by extra(arrayOf(/s/arrayOf([^)]*)/arrayOf(\"${{ matrix.arch }}\")/" ./build.gradle.kts
             ./gradlew :test:connectedCheck
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: true
@@ -217,8 +218,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - branch: "aosp-main"
-            device: "aosp_cf_x86_64_phone"
+          - branch: "aosp-android-latest-release"
+            device: "aosp_cf_x86_64_only_phone"
 
     steps:
       - name: checkout
@@ -249,9 +250,10 @@ jobs:
           ccache -o cache_dir=${{ github.workspace }}/.ccache
           ccache -o hash_dir=false
           ccache -o compiler_check='%compiler% -dumpmachine; %compiler% -dumpversion'
+          sed -i "/val androidAbiFilters by extra(arrayOf(/s/arrayOf([^)]*)/arrayOf(\"x86_64\")/" ./build.gradle.kts
       - name: Run Cuttlefish test
         timeout-minutes: 10
-        run: su $USER -c '.github/cuttlefish.sh test'
+        run: sudo -E -u $USER .github/cuttlefish.sh test
       - name: Upload logs on error
         if: ${{ failure() }}
         uses: actions/upload-artifact@v4
@@ -260,3 +262,19 @@ jobs:
           path: |
             /home/runner/aosp_cf_phone/cuttlefish/instances/cvd-1/logs
             /home/runner/aosp_cf_phone/cuttlefish/instances/cvd-1/cuttlefish_config.json
+      - name: Rename files with invalid characters
+        if: always()
+        run: |
+          find test/build/outputs -name "*:*" -type f | while read file; do
+            new_name="${file//:/_}"
+            mv "$file" "$new_name"
+            echo "Renamed: $file -> $new_name"
+          done
+      - name: Upload outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-outputs-${{ matrix.device }}
+          path: |
+            test/build/outputs
+            !test/build/outputs/apk

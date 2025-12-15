@@ -10,6 +10,7 @@ val androidBuildToolsVersion: String by rootProject.extra
 val androidCompileSdkVersion: Int by rootProject.extra
 val androidNdkVersion: String by rootProject.extra
 val androidCmakeVersion: String by rootProject.extra
+val androidAbiFilters: Array<String> by rootProject.extra
 
 android {
     namespace = "org.lsposed.lsplant.test"
@@ -31,8 +32,15 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         externalNativeBuild {
             cmake {
+                abiFilters += androidAbiFilters
                 arguments += "-DANDROID_STL=c++_shared"
+                cppFlags += "-Wno-gnu-string-literal-operator-template"
+                cppFlags += "-Wno-varargs"
+                cppFlags += "-Wno-vla-cxx-extension"
             }
+        }
+        ndk {
+            abiFilters += androidAbiFilters
         }
     }
 
@@ -40,6 +48,11 @@ android {
         debug {
             isDebuggable = false
         }
+    }
+
+    lint {
+        abortOnError = true
+        checkReleaseBuilds = false
     }
 
     externalNativeBuild {
@@ -50,8 +63,8 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     testOptions {
@@ -95,11 +108,9 @@ android {
 }
 
 dependencies {
-    implementation(project(":lsplant"))
-    implementation(libs.dobby)
+    // implementation(project(":lsplant"))
 
     androidTestImplementation(libs.test.ext.junit)
     androidTestImplementation(libs.test.runner)
     androidTestImplementation(libs.test.espresso)
 }
-

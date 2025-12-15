@@ -13,6 +13,7 @@ val androidBuildToolsVersion: String by rootProject.extra
 val androidCompileSdkVersion: Int by rootProject.extra
 val androidNdkVersion: String by rootProject.extra
 val androidCmakeVersion: String by rootProject.extra
+val androidAbiFilters: Array<String> by rootProject.extra
 
 android {
     compileSdk = androidCompileSdkVersion
@@ -22,8 +23,10 @@ android {
     buildFeatures {
         buildConfig = false
         prefabPublishing = true
-        androidResources = false
         prefab = true
+        androidResources {
+            enable = false
+        }
     }
 
     packaging {
@@ -77,10 +80,13 @@ android {
 cmaker {
     default {
         val flags = arrayOf(
-            "-Werror",
             "-Wno-gnu-string-literal-operator-template",
+            "-Wno-varargs",
+            "-Wno-vla-cxx-extension",
+            "-DPHMAP_HAVE_SSE2=0",
+            "-DPHMAP_HAVE_SSSE3=0",
         )
-        abiFilters("armeabi-v7a", "arm64-v8a", "x86", "x86_64", "riscv64")
+        abiFilters += androidAbiFilters
         cppFlags += flags
         cFlags += flags
     }
@@ -88,14 +94,13 @@ cmaker {
         when (it.name) {
             "debug", "release" -> {
                 arguments += "-DANDROID_STL=c++_shared"
-                arguments += "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON"
             }
             "standalone" -> {
                 arguments += "-DANDROID_STL=none"
                 arguments += "-DLSPLANT_STANDALONE=ON"
-                arguments += "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON"
             }
         }
+        arguments += "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON"
         arguments += "-DDEBUG_SYMBOLS_PATH=${project.layout.buildDirectory.file("symbols/${it.name}").get().asFile.absolutePath}"
     }
 }
@@ -142,6 +147,10 @@ publish {
                     developer {
                         name = "Lsposed"
                         url = "https://lsposed.org"
+                    }
+                    developer {
+                        name = "Eirv"
+                        url = "https://github.com/eirv"
                     }
                 }
                 scm {

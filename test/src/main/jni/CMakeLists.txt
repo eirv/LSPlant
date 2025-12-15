@@ -3,16 +3,21 @@ project("lsplant_test")
 
 set(CMAKE_CXX_STANDARD 23)
 
-add_subdirectory(external/lsparself)
-add_library(test SHARED test.cpp)
+set(RV64HOOK_BUILD_SHARED ON CACHE INTERNAL "" FORCE)
+set(RV64HOOK_BUILD_STATIC OFF CACHE INTERNAL "" FORCE)
+set(DOBBY_DEBUG OFF CACHE INTERNAL "" FORCE)
+set(Plugin.SymbolResolver OFF CACHE INTERNAL "" FORCE)
+
+add_subdirectory(../../../../lsplant/src/main/jni lsplant)
+add_subdirectory(xDL)
+add_subdirectory(external/riscv64-inline-hook)
+
+add_library(test SHARED test.cc)
 set_target_properties(test PROPERTIES CXX_SCAN_FOR_MODULES ON)
-find_package(dobby REQUIRED CONFIG)
-find_package(lsplant REQUIRED CONFIG)
+target_link_libraries(test PRIVATE log lsplant xdl rv64hook)
 
-get_property(lsplant_INCLUDE TARGET lsplant::lsplant PROPERTY INTERFACE_INCLUDE_DIRECTORIES)
-file(GLOB_RECURSE lsplant_MODULES "${lsplant_INCLUDE}/*.ixx")
-target_sources(lsplant::lsplant INTERFACE FILE_SET CXX_MODULES BASE_DIRS ${lsplant_INCLUDE} FILES ${lsplant_MODULES})
-set_target_properties(lsplant::lsplant PROPERTIES IMPORTED_CXX_MODULES_COMPILE_FEATURES "cxx_std_23")
-set_target_properties(lsplant::lsplant PROPERTIES IMPORTED_CXX_MODULES_INCLUDE_DIRECTORIES "${lsplant_INCLUDE}")
-
-target_link_libraries(test log dobby::dobby lsplant::lsplant lsparself)
+if (NOT ANDROID_ABI STREQUAL "riscv64")
+    add_subdirectory(external/Dobby)
+    target_compile_definitions(dobby PRIVATE DOBBY_LOGGING_DISABLE)
+    target_link_libraries(test PRIVATE dobby)
+endif ()

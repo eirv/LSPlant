@@ -1,0 +1,13 @@
+{
+global:
+    extern "C++" {
+        lsplant::v3::*;
+    };
+
+    _ZGIW7lsplant;
+    _ZGIW11hook_helper;
+    _ZGIW10jni_helper;
+
+local:
+    *;
+};

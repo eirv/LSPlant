@@ -10,3 +10,5 @@
 *.dex binary
 *.jar binary
 *.png binary
+
+docs/** linguist-detectable=false

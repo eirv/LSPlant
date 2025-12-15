@@ -1,0 +1,1 @@
+../../../../lsplant/src/main/jni/logging.hpp

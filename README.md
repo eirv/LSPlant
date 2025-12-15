@@ -1,20 +1,42 @@
 # LSPlant
 
 ![](https://img.shields.io/badge/license-LGPL--3.0-orange.svg)
-![](https://img.shields.io/badge/Android-5.0%20--%2015%20Beta2-blue.svg)
-![](https://img.shields.io/badge/arch-armeabi--v7a%20%7C%20arm64--v8a%20%7C%20x86%20%7C%20x86--64%7C%20riscv64-brightgreen.svg)
-![](https://github.com/LSPosed/LSPlant/actions/workflows/build.yml/badge.svg?branch=master&event=push)
+![](https://img.shields.io/badge/Android-5.0%20--%2016-blue.svg)
+![](https://img.shields.io/badge/arch-armeabi--v7a%20%7C%20arm64--v8a%20%7C%20x86%20%7C%20x86--64%20%7C%20riscv64-brightgreen.svg)
+![](https://github.com/eirv/LSPlant/actions/workflows/build.yml/badge.svg?branch=master&event=push)
 ![](https://img.shields.io/maven-central/v/org.lsposed.lsplant/lsplant.svg)
 
-LSPlant is an Android ART hook library, providing Java method hook/unhook and inline deoptimization.
+**English**
+ | [**中文**](README_zh.md)
+
+> [!Tip]
+> Due to the radical modifications I’ve made to this library, it might not perform as expected on some devices.  
+> But feel free to give it a try!
+
+> LSPlant is an Android ART hook library, providing Java method hook/unhook and inline deoptimization.
 
 This project is part of LSPosed framework under GNU Lesser General Public License.
 
 ## Features
 
-+ Support Android 5.0 - 15 Beta2 (API level 21 - 35)
++ Support Android 5.0 - 16 (API level 21 - 36)
 + Support armeabi-v7a, arm64-v8a, x86, x86-64, riscv64
 + Support customized inline hook framework and ART symbol resolver
+
+## (Important) Incompatibilities with Upstream Library Behavior
+
++ The namespace of exported functions has changed from `lsplant::v2` to `lsplant::v3`.
++ By default, only the shared library is compiled. If you need to compile the static library, set the CMake option `LSPLANT_BUILD_STATIC` to `ON`.
++ `InitInfo::inline_hooker` Now takes three arguments and returns a handle for the current hook operation.
++ `InitInfo::inline_unhooker` Can be null, takes a handle returned from a previous hook operation.
++ `InitInfo::art_symbol_resolver` Takes two arguments, with the second being the current symbol’s GNU hash.
++ `InitInfo::art_symbol_prefix_resolver` Can be null.
++ `InitInfo::dexfile_symbol_resolver` Can be null, used to find function addresses in `libdexfile.so`. It is used only on Android 9 and above to load and hide DEX files in memory.
++ `InitInfo::generated_class_name` Changed from the default `"LSPHooker_"` to `"LSPHooker$"`, indicating a generated class name prefix.
++ `InitInfo::generated_source_name` Can be empty. If empty, the generated stub class will be hidden in the stack trace.
++ `InitInfo::generated_field_name` Changed from `"hooker"` to `"data"`.
++ `InitInfo::generated_*` These values can be updated by re-calling the `Init()` function.
++ `Hook()` The returned `jobject` is no longer a global reference, but a local reference. Callback methods support two signatures, more details can be found in [Hook](#2-hook).
 
 ## Documentation
 
@@ -77,9 +99,14 @@ Hook a Java method by providing the `target_method` together with the context ob
 
 + `callback_method` is an `Method` object, the callback method to the `hooker_object` used to replace the `target_method`.
 
-  Whenever the `target_method` is invoked, the callback_method will be invoked instead of the original `target_method`. The signature of the `callback_method` must be: `public Object callback_method(Object []args)`.
+  Whenever the `target_method` is invoked, the `callback_method` will be invoked instead of the original `target_method`. The signature of the `callback_method` must be one of these two methods:
 
-  That is, the return type must be `Object` and the parameter type must be `Object[]`. Behavior is undefined if the signature does not match the requirement. Extra info can be provided by defining member variables of `hooker_object`. This method must be a method to `hooker_object`.
+```java
+public Object callback_method(Object receiver, Object[] args)
+public Object callback_method(Object[] packedArgs)
+```
+
+  That is, the return type must be `Object` and the parameter type must be `Object, Object[]` or `Object[]`. Behavior is undefined if the signature does not match the requirement. Extra info can be provided by defining member variables of `hooker_object`. This method must be a method to `hooker_object`.
 
 ```c++
 jobject Hook(JNIEnv *env,
@@ -88,11 +115,11 @@ jobject Hook(JNIEnv *env,
              jobject callback_method);
 ```
 
-Returns the backup method. You can invoke it by reflection to invoke the original method. null if fails.
+Returns the backup method. You can invoke it by reflection to invoke the original method. `null` if fails.
 
-This function will automatically generate a stub class for hook. To help debug, you can set the generated class name, its field name, its source name and its method name by setting `generated_*` in `InitInfo`.
+This function will automatically generate a stub class for hook. To help debug, you can set the generated class name, its field name and its method name by setting `generated_*` in `InitInfo`.
 
-This function thread safe (you can call it simultaneously from multiple thread) but it's not atomic to the same `target_method`. That means `UnHook` or `IsUnhook` does not guarantee to work properly on the same `target_method` before it returns. Also, simultaneously call on this function with the same target_method does not guarantee only one will success. If you call this with different `hooker_object` on the same `target_method` simultaneously, the behavior is undefined.
+This function thread safe (you can call it simultaneously from multiple thread) but it's not atomic to the same `target_method`. That means `UnHook` or `IsUnhook` does not guarantee to work properly on the same `target_method` before it returns. Also, simultaneously call on this function with the same `target_method` does not guarantee only one will success. If you call this with different `hooker_object` on the same `target_method` simultaneously, the behavior is undefined.
 
 ### 3. Check
 
@@ -103,7 +130,7 @@ bool IsHooked(JNIEnv *env,
               jobject method);
 ```
 
-Returns whether the method is hooked.
+  Returns whether the method is hooked.
 
 ### 4. Unhook
 
@@ -118,9 +145,9 @@ bool UnHook(JNIEnv *env,
             jobject target_method);
 ```
 
-Returns whether the unhook succeed.
+  Returns whether the unhook succeed.
 
-Calling backup (the return method of `Hook()`) after unhooking is undefined behavior. Please read `Hook()`'s note for more details.
+  Calling backup (the return method of `Hook()`) after unhooking is undefined behavior. Please read `Hook()`'s note for more details.
 
 ### 5. Deoptimize
 
@@ -148,3 +175,5 @@ Inspired by the following frameworks:
 - [SandHook](https://github.com/asLody/SandHook)
 - [Pine](https://github.com/canyie/pine)
 - [Epic](https://github.com/tiann/epic)
+
+You can support development by submitting PRs or donating to the original projects.
