@@ -40,7 +40,7 @@ This project is part of LSPosed framework under GNU Lesser General Public Licens
 
 ## Documentation
 
-https://lsposed.org/LSPlant/namespacelsplant.html
+https://eirv.github.io/LSPlant/namespacelsplant.html
 
 ## Quick Start
 

@@ -40,7 +40,7 @@
 
 ## 文档
 
-https://lsposed.org/LSPlant/namespacelsplant.html
+https://eirv.github.io/LSPlant/namespacelsplant.html
 
 ## 快速开始
 
