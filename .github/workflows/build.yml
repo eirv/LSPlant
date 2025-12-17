@@ -67,99 +67,43 @@ jobs:
 
   test:
     needs: build
-    name: Test on API ${{ matrix.api-level }} ${{ matrix.arch }}
+    name: Test on API ${{ matrix.android.api }} ${{ matrix.android.arch }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - api-level: 21
-            target: default
-            arch: x86_64
-          - api-level: 21
-            target: default
-            arch: x86
-          - api-level: 22
-            target: default
-            arch: x86_64
-          - api-level: 22
-            target: default
-            arch: x86
-          - api-level: 23
-            target: default
-            arch: x86_64
-          - api-level: 23
-            target: default
-            arch: x86
-          - api-level: 24
-            target: default
-            arch: x86_64
-          - api-level: 24
-            target: default
-            arch: x86
-          - api-level: 25
-            target: default
-            arch: x86_64
-          - api-level: 25
-            target: default
-            arch: x86
-          - api-level: 26
-            target: default
-            arch: x86_64
-          - api-level: 26
-            target: default
-            arch: x86
-          - api-level: 27
-            target: default
-            arch: x86_64
-          - api-level: 27
-            target: default
-            arch: x86
-          - api-level: 28
-            target: default
-            arch: x86_64
-          - api-level: 28
-            target: default
-            arch: x86
-          - api-level: 29
-            target: default
-            arch: x86_64
-          - api-level: 29
-            target: default
-            arch: x86
-          - api-level: 30
-            target: default
-            arch: x86_64
-          - api-level: 30
-            target: google_apis
-            arch: x86
-          - api-level: 31
-            target: default
-            arch: x86_64
-          - api-level: 31
-            target: android-tv
-            arch: x86
-          - api-level: 32
-            target: google_apis
-            arch: x86_64
-          - api-level: 33
-            target: default
-            arch: x86_64
-          - api-level: 33
-            target: android-tv
-            arch: x86
-          - api-level: 34
-            target: default
-            arch: x86_64
-          - api-level: 34
-            target: android-tv
-            arch: x86
-          - api-level: 35
-            target: default
-            arch: x86_64
-          - api-level: 36
-            target: google_apis
-            arch: x86_64
+        android:
+          - { api: '21', target: 'default',     arch: "x86_64" }
+          - { api: '21', target: 'default',     arch: "x86"    }
+          - { api: '22', target: 'default',     arch: "x86_64" }
+          - { api: '22', target: 'default',     arch: "x86"    }
+          - { api: '23', target: 'default',     arch: "x86_64" }
+          - { api: '23', target: 'default',     arch: "x86"    }
+          - { api: '24', target: 'default',     arch: "x86_64" }
+          - { api: '24', target: 'default',     arch: "x86"    }
+          - { api: '25', target: 'default',     arch: "x86_64" }
+          - { api: '25', target: 'default',     arch: "x86"    }
+          - { api: '26', target: 'default',     arch: "x86_64" }
+          - { api: '26', target: 'default',     arch: "x86"    }
+          - { api: '27', target: 'default',     arch: "x86_64" }
+          - { api: '27', target: 'default',     arch: "x86"    }
+          - { api: '28', target: 'default',     arch: "x86_64" }
+          - { api: '28', target: 'default',     arch: "x86"    }
+          - { api: '29', target: 'default',     arch: "x86_64" }
+          - { api: '29', target: 'default',     arch: "x86"    }
+          - { api: '30', target: 'aosp_atd',    arch: "x86_64" }
+          - { api: '30', target: 'aosp_atd',    arch: "x86"    }
+          - { api: '31', target: 'aosp_atd',    arch: "x86_64" }
+          - { api: '31', target: 'android-tv',  arch: "x86"    }
+          - { api: '32', target: 'aosp_atd',    arch: "x86_64" }
+          - { api: '33', target: 'aosp_atd',    arch: "x86_64" }
+          - { api: '33', target: 'android-tv',  arch: "x86"    }
+          - { api: '34', target: 'aosp_atd',    arch: "x86_64" }
+          - { api: '34', target: 'android-tv',  arch: "x86"    }
+          - { api: '35', target: 'aosp_atd',    arch: "x86_64" }
+          - { api: '36', target: 'google_apis', arch: "x86_64" }
+          - { api: '36', target: 'android-tv',  arch: "x86"    }
+          - { api: '36.1', target: 'google_apis_ps16k', arch: "x86_64" }
     steps:
       - name: checkout
         uses: actions/checkout@v4
@@ -187,26 +131,26 @@ jobs:
             sudo udevadm control --reload-rules
             sudo udevadm trigger --name-match=kvm
       - name: run tests
-        uses: reactivecircus/android-emulator-runner@b683a061eaff4aac4d0b585bfd0cf714a40aee93
+        uses: reactivecircus/android-emulator-runner@v2.35.0
         with:
-          api-level: ${{ matrix.api-level }}
-          arch: ${{ matrix.arch }}
-          target: ${{ matrix.target }}
+          api-level: ${{ matrix.android.api }}
+          arch: ${{ matrix.android.arch }}
+          target: ${{ matrix.android.target }}
           script: |
             rm -rf $ANDROID_HOME/cmake
             ccache -o cache_dir=${{ github.workspace }}/.ccache
             ccache -o hash_dir=false
             ccache -o compiler_check='%compiler% -dumpmachine; %compiler% -dumpversion'
-            sed -i "/val androidAbiFilters by extra(arrayOf(/s/arrayOf([^)]*)/arrayOf(\"${{ matrix.arch }}\")/" ./build.gradle.kts
+            sed -i "/val androidAbiFilters by extra(arrayOf(/s/arrayOf([^)]*)/arrayOf(\"${{ matrix.android.arch }}\")/" ./build.gradle.kts
             ./gradlew :test:connectedCheck
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: true
-          avd-name: ${{ matrix.api-level }}_${{ matrix.arch }}
+          avd-name: ${{ matrix.android.api }}_${{ matrix.android.arch }}
       - name: Upload outputs
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: test-outputs-${{ matrix.arch }}-${{ matrix.target }}-${{ matrix.api-level }}
+          name: test-outputs-${{ matrix.android.arch }}-${{ matrix.android.target }}-${{ matrix.android.api }}
           path: |
             test/build/outputs
             !test/build/outputs/apk
@@ -276,7 +220,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: test-outputs-${{ matrix.device }}
+          name: test-outputs-x86_64-cf-aosp
           path: |
             test/build/outputs
             !test/build/outputs/apk
