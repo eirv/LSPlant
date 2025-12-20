@@ -223,6 +223,9 @@ private:
         RestoreBackup(mirror_class->GetClassDef(), nullptr);
     };
 
+    // This function follows the LLVM internal calling convention on Android 16 x86, similar to
+    // fastcall, but we cannot call it through the standard fastcall calling convention, so hooking
+    // it will lead to undefined behavior.
     inline static auto FixupStaticTrampolinesWithThread_ =
         "_ZN3art11ClassLinker22FixupStaticTrampolinesEPNS_6ThreadENS_6ObjPtrINS_6mirror5ClassEEE"_sym
             .hook
@@ -275,8 +278,13 @@ public:
             return false;
         }
 
-        auto may_update_entrypoint = !handler(FixupStaticTrampolinesWithThread_,
-                                              FixupStaticTrampolines_, FixupStaticTrampolinesRaw_);
+        auto may_update_entrypoint = false;
+        if constexpr (is_arch_v<Arch::kX86>) {
+            may_update_entrypoint = !handler(FixupStaticTrampolines_, FixupStaticTrampolinesRaw_);
+        } else {
+            may_update_entrypoint = !handler(FixupStaticTrampolinesWithThread_,
+                                             FixupStaticTrampolines_, FixupStaticTrampolinesRaw_);
+        }
 
         if constexpr (!is_arch_v<Arch::kX86, Arch::kX64>) {
             // fixup static trampoline may have been inlined
@@ -286,10 +294,9 @@ public:
             }
         }
 
-        if (may_update_entrypoint || Instrumentation::MayUpdateMethodsCode()) {
-            LOGE(
-                "Failed to hook FixupStaticTrampolines, AdjustThreadVisibilityCounter or MarkVisiblyInitialized");
-            return false;
+        if (may_update_entrypoint) {
+            LOGW(
+                "Entry point cannot be updated after class initialization; pending hook may not work");
         }
 
         if (sdk_int < __ANDROID_API_T__ && handler(SetEntryPointsToInterpreter_)) [[unlikely]] {

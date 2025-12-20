@@ -114,11 +114,6 @@ export class Instrumentation {
     };
 
 public:
-    static bool MayUpdateMethodsCode() {
-        return !UpdateMethodsCodeImpl_ && !UpdateMethodsCode_ &&
-               !UpdateMethodsCodeWithProtableCode_;
-    }
-
     static bool Init(JNIEnv *env, const HookHandler &handler) {
         int sdk_int = GetAndroidApiLevel();
 
