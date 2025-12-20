@@ -73,37 +73,37 @@ jobs:
       fail-fast: false
       matrix:
         android:
-          - { api: '21', target: 'default',     arch: "x86_64" }
-          - { api: '21', target: 'default',     arch: "x86"    }
-          - { api: '22', target: 'default',     arch: "x86_64" }
-          - { api: '22', target: 'default',     arch: "x86"    }
-          - { api: '23', target: 'default',     arch: "x86_64" }
-          - { api: '23', target: 'default',     arch: "x86"    }
-          - { api: '24', target: 'default',     arch: "x86_64" }
-          - { api: '24', target: 'default',     arch: "x86"    }
-          - { api: '25', target: 'default',     arch: "x86_64" }
-          - { api: '25', target: 'default',     arch: "x86"    }
-          - { api: '26', target: 'default',     arch: "x86_64" }
-          - { api: '26', target: 'default',     arch: "x86"    }
-          - { api: '27', target: 'default',     arch: "x86_64" }
-          - { api: '27', target: 'default',     arch: "x86"    }
-          - { api: '28', target: 'default',     arch: "x86_64" }
-          - { api: '28', target: 'default',     arch: "x86"    }
-          - { api: '29', target: 'default',     arch: "x86_64" }
-          - { api: '29', target: 'default',     arch: "x86"    }
-          - { api: '30', target: 'aosp_atd',    arch: "x86_64" }
-          - { api: '30', target: 'aosp_atd',    arch: "x86"    }
-          - { api: '31', target: 'aosp_atd',    arch: "x86_64" }
-          - { api: '31', target: 'android-tv',  arch: "x86"    }
-          - { api: '32', target: 'aosp_atd',    arch: "x86_64" }
-          - { api: '33', target: 'aosp_atd',    arch: "x86_64" }
-          - { api: '33', target: 'android-tv',  arch: "x86"    }
-          - { api: '34', target: 'aosp_atd',    arch: "x86_64" }
-          - { api: '34', target: 'android-tv',  arch: "x86"    }
-          - { api: '35', target: 'aosp_atd',    arch: "x86_64" }
-          - { api: '36', target: 'google_apis', arch: "x86_64" }
-          - { api: '36', target: 'android-tv',  arch: "x86"    }
-          - { api: '36.1', target: 'google_apis_ps16k', arch: "x86_64" }
+          - { api: '21',   target: 'default',     arch: "x86_64" }
+          - { api: '21',   target: 'default',     arch: "x86"    }
+          - { api: '22',   target: 'default',     arch: "x86_64" }
+          - { api: '22',   target: 'default',     arch: "x86"    }
+          - { api: '23',   target: 'default',     arch: "x86_64" }
+          - { api: '23',   target: 'default',     arch: "x86"    }
+          - { api: '24',   target: 'default',     arch: "x86_64" }
+          - { api: '24',   target: 'default',     arch: "x86"    }
+          - { api: '25',   target: 'default',     arch: "x86_64" }
+          - { api: '25',   target: 'default',     arch: "x86"    }
+          - { api: '26',   target: 'default',     arch: "x86_64" }
+          - { api: '26',   target: 'default',     arch: "x86"    }
+          - { api: '27',   target: 'default',     arch: "x86_64" }
+          - { api: '27',   target: 'default',     arch: "x86"    }
+          - { api: '28',   target: 'default',     arch: "x86_64" }
+          - { api: '28',   target: 'default',     arch: "x86"    }
+          - { api: '29',   target: 'default',     arch: "x86_64" }
+          - { api: '29',   target: 'default',     arch: "x86"    }
+          - { api: '30',   target: 'aosp_atd',    arch: "x86_64" }
+          - { api: '30',   target: 'aosp_atd',    arch: "x86"    }
+          - { api: '31',   target: 'aosp_atd',    arch: "x86_64" }
+          - { api: '31',   target: 'android-tv',  arch: "x86"    }
+          - { api: '32',   target: 'aosp_atd',    arch: "x86_64" }
+          - { api: '33',   target: 'aosp_atd',    arch: "x86_64" }
+          - { api: '33',   target: 'android-tv',  arch: "x86"    }
+          - { api: '34',   target: 'aosp_atd',    arch: "x86_64" }
+          - { api: '34',   target: 'android-tv',  arch: "x86"    }
+          - { api: '35',   target: 'aosp_atd',    arch: "x86_64" }
+          - { api: '36',   target: 'google_apis', arch: "x86_64" }
+          - { api: '36',   target: 'android-tv',  arch: "x86"    }
+          - { api: '36.1', target: 'google_apis', arch: "x86_64" }
     steps:
       - name: checkout
         uses: actions/checkout@v4
