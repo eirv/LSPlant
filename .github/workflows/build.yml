@@ -4,9 +4,11 @@ on:
   push:
     branches: ["main"]
     paths-ignore:
+      - '.github/workflows/pages.yml'
+      - '.github/workflows/maven.yml'
+      - 'docs/**'
       - 'README.md'
       - 'README_zh.md'
-      - 'docs/**'
   workflow_dispatch:
   pull_request:
 

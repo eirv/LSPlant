@@ -5,6 +5,7 @@
 [submodule "docs/doxygen-awesome-css"]
 	path = docs/doxygen-awesome-css
 	url = https://github.com/jothepro/doxygen-awesome-css.git
+	branch = v2.4.1
 [submodule "test/src/main/jni/external/xDL"]
 	path = test/src/main/jni/external/xDL
 	url = https://github.com/hexhacking/xDL

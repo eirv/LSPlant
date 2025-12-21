@@ -6,8 +6,11 @@ on:
   push:
     branches: ["main"]
     paths:
-      - 'lsplant/src/main/jni/include/lsplant.hpp'
+      - '.github/workflows/pages.yml'
       - 'docs/**'
+      - 'lsplant/src/main/jni/include/lsplant.hpp'
+      - 'README.md'
+      - 'README_zh.md'
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -37,9 +40,23 @@ jobs:
           submodules: 'recursive'
           ssh-key: ${{ secrets.SSH_KEY }}
       - name: Install doxygen
-        run: sudo apt install -y doxygen
+        run: |
+          curl -LO https://github.com/doxygen/doxygen/releases/download/Release_1_15_0/doxygen-1.15.0.linux.bin.tar.gz
+          tar -zxf doxygen-1.15.0.linux.bin.tar.gz
       - name: Generate doxygen
-        run: doxygen docs/doxygen.cfg
+        run: |
+          release_version=$(curl -s https://api.github.com/repos/PeterFeicht/cppreference-doc/releases/latest | jq -r .tag_name)
+          echo "Latest cppreference-doc version: $release_version"
+          curl -LO "https://github.com/PeterFeicht/cppreference-doc/releases/download/$release_version/html-book-${release_version#v}.zip"
+          unzip -o "html-book-${release_version#v}.zip" "cppreference-doxygen-web.tag.xml" -d ./docs
+
+          ./doxygen-1.15.0/bin/doxygen docs/doxygen.cfg
+
+          mkdir -p docs/docs/zh
+          sed -i 's/OUTPUT_LANGUAGE        = English/OUTPUT_LANGUAGE        = Chinese/g' docs/doxygen.cfg
+          sed -i 's/USE_MDFILE_AS_MAINPAGE = README.md/USE_MDFILE_AS_MAINPAGE = README_zh.md/g' docs/doxygen.cfg
+          sed -i 's/HTML_OUTPUT            = docs/HTML_OUTPUT            = docs\/zh/g' docs/doxygen.cfg
+          ./doxygen-1.15.0/bin/doxygen docs/doxygen.cfg
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
